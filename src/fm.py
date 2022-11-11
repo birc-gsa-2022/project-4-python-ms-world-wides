@@ -1,75 +1,66 @@
 import argparse
 import sys
 import re
+import ast
 
-def suffixArray(t):
-    """Given T return suffix array SA(T). 
+def suffixArray(x: str) -> list:
+    """Given x return suffix array SA(x). 
        We use Python's sorted function here 
        for simplycity, but we can do better.
 
     Args:
-        t (str): input string.
+        x (str): input string.
     """  
-    satups = sorted([(t[i:], i) for i in range(len(t))])
+    satups = sorted([(x[i:], i) for i in range(len(x))])
     
-    return list(map(lambda x: x[1], satups))
+    return list(map(lambda t: t[1], satups))
 
-def cigar_to_dict(cigar: str):
-    lst = [(int(i), op) for i, op in re.findall(r"(\d+)([^\d]+)", cigar)]
-    if(cigar!=''):
-        dict = {lst[i][1]: lst[i][0] for i in range(0, len(lst))}
-    return dict
 
-def dict_to_cigar(dict):
-    cigar = []
-    for key in dict:
-        cigar.append(dict[key])
-        cigar.append(key)
-    return ''.join(str(e) for e in cigar)
-
-def count_to_bucket(count: str):
+def count_to_bucket(count: str) -> dict:
     '''
-    >>> cigar_to_edits("1$4i1m2p4s")
-    '0$1i5m6p8s'
+    >>> count_to_bucket("$iiiimppss")
+    bucket = {$ : 0, i : 1, m : 5, p : 6, s : 8}
     '''
-    C = cigar_to_dict(count)
-    letter = list(C.keys())
-    bucket = {}
-    bucket[letter[0]] = 0
-    for i in range(1,len(letter)):
-        bucket[letter[i]] = bucket[letter[i-1]] + C[letter[i-1]]
+    C = {}
+    for i,c in enumerate(count):
+        if c in C:
+            continue
+        else:
+            C[c] = i
 
-    return dict_to_cigar(bucket)
+    return C
     
-
-#BWT
-def bwt_C(x):
+def bwt_C_O(x: str) -> tuple():
+    
     x += '$'
     sa = suffixArray(x)
-    col = len(x)-1
+    col = len(x)-1 # column at the back
 
     bwt = ''.join([x[(i + col)%len(x)] for i in sa])
     count = ''.join([x[i] for i in sa])
-    C = count_to_bucket(rle(count))         #  C is the bucket list
-    #O = calc_O(sa, C)
-    return bwt#, C, O
+    C = count_to_bucket(count) # dict with cumulative counts
+    O = calc_O(bwt, C) # dict (table) with offsets
+    return sa, C , O
 
-def calc_O(sa, C):
+def calc_O(bwt: str, C: dict) -> dict:
+    '''
+    >>>calc_O('aaba$')
+    O = { '$' : [0, 0, 0, 1, 1, 1], 'a' : [0, 1, 1, 1, 2, 3], 'b' : [0, 0, 1, 1, 1, 1]}
+    '''
+    O = C.copy()
+    for k in O.keys():
+        O[k] = [0]
     
-    for k in C.keys():
-        C[k] = [0]
-    
-    O = C
-    for s in sa:
+    for char in bwt:
         for k in O.keys():
-            if k == s:
+            if k == char:
                 O[k].append(O[k][-1]+1)
             else:
                 O[k].append(O[k][-1])
     
     return O        
 
-def fasta_func(fastafile):
+def fasta_func(fastafile: str) -> dict:
     '''Function that can take file or list of strings and return dictionary
     with fasta sequence coupled with its sequence name'''
 
@@ -92,81 +83,125 @@ def fasta_func(fastafile):
 
     return fasta_dict
 
-def rle(s):
-    rle_bwt = ""
-    i = 0
-    while (i <= len(s)-1):
-        cnt = 1
-        chr = s[i]
-        j = i
-        while (j < len(s)-1):
-            if (s[j] == s[j+1]):
-                cnt += 1
-                j += 1
-            else:
-                break
-        rle_bwt += str(cnt)+chr
-        i = j+1
-    return rle_bwt
+def fastq_func(fastqfile: str) -> dict: 
+    read = []
+    name = ''
+    fastq_dict = {}
+    for line in fastqfile:
+        if line.startswith('@'):
+            if name != '':
+                fastq_dict[name] = ''.join(read)
+                read = []
+            name = line[1:].strip()
+        else:
+            read.append(line.strip())
 
-def process_file(fasta_dict, filename):
+    if name != '':
+        fastq_dict[name] = ''.join(read)
+
+    return fastq_dict
+    
+def process_file(fasta_dict: dict, filename: str):
+    '''Create a file containing the name of each string 
+    with their suffix array, their bucket dict and their O table'''
     filename = filename.split('.')[0]
-    file = filename + '_rle.txt'
+    file = filename + '_prepro.txt'
 
     with open(file, 'w') as f:
+        final = ''
         for k, v in fasta_dict.items():
-            final = '>' + k + '/n'
-            bwt, C, O = bwt_C(v)
-            comp_bwt = rle(bwt)
-            final += '#' + comp_bwt + '/n'
-            comp_C = C
-            final += '+' + comp_C + '/n'
-            # add O
+            final += '>' + k + '\n'
+            sa, C, O = bwt_C_O(v)
+            final += '#' + str(sa) + '\n'
+            final += '+' + str(C) + '\n'
+            final += '@' + str(O) + '\n'
         f.writelines(final)
 
+def fm_search(prepro_file: str, reads: str) -> str:
+
+    # give room for muliple fasta sequences
+    fastanames, sa_list, C_list, O_list = [], [], [], []
+
+    with open(prepro_file, 'r') as f:    
+        lines = f.readlines()
+        for line in lines:
+            if line.startswith('>'):
+                name = line[1:].strip()
+                fastanames.append(name)
+            elif line.startswith('#'):
+                l = ast.literal_eval(line[1:].strip())
+                sa_list.append(l)
+            elif line.startswith('+'):
+                d = ast.literal_eval(line[1:].strip())
+                C_list.append(d) # convert back to dict
+            elif line.startswith('@'):
+                d = ast.literal_eval(line[1:].strip())
+                O_list.append(d) # convert back to dict
+    
+    fastq_dict = fastq_func(reads)
+
+    res = []
+    for readname, read in fastq_dict.items():
+        
+        if len(sa_list) == len(C_list) == len(O_list):
+            # For each fasta sequence
+            for i in range(len(sa_list)):
+                genomename = fastanames[i]
+
+                sa, O, C = sa_list[i], O_list[i], C_list[i]
+                L, R = 0, len(sa)
+                
+                for char in reversed(read):
+                    if L == R or char not in C:
+                        L = R # for char not in C
+                        break
+                    else:
+                        L = C[char] + O[char][L]
+                        R = C[char] + O[char][R]
+                
+                for a in range(L,R):
+                    match = sa[a]+1
+                    res.append('\t'.join([readname, genomename, str(match), f'{str(len(read))}M', read]))
+    
+    return '\n'.join(res)
 
 def main():
 
-    # x = 'aaaaaaa'
-    # f = 'genome'
+    argparser = argparse.ArgumentParser(
+        description="FM-index exact pattern matching",
+        usage="\n\tfm -p genome\n\tfm genome reads"
+    )
+    argparser.add_argument(
+        "-p", action="store_true",
+        help="preprocess the genome."
+    )
+    argparser.add_argument(
+        "genome",
+        help="Simple-FASTA file containing the genome.",
+        type=argparse.FileType('r')
+    )
+    argparser.add_argument(
+        "reads", nargs="?",
+        help="Simple-FASTQ file containing the reads.",
+        type=argparse.FileType('r')
+    )
+    args = argparser.parse_args()
 
-    # save_as_file(x, f)
+    if args.p:
+        print(f"Preprocess {args.genome}")
+        fasta_dict = fasta_func(args.genome)
 
-    # argparser = argparse.ArgumentParser(
-    #     description="FM-index exact pattern matching",
-    #     usage="\n\tfm -p genome\n\tfm genome reads"
-    # )
-    # argparser.add_argument(
-    #     "-p", action="store_true",
-    #     help="preprocess the genome."
-    # )
-    # argparser.add_argument(
-    #     "genome",
-    #     help="Simple-FASTA file containing the genome.",
-    #     type=argparse.FileType('r')
-    # )
-    # argparser.add_argument(
-    #     "reads", nargs="?",
-    #     help="Simple-FASTQ file containing the reads.",
-    #     type=argparse.FileType('r')
-    # )
-    # args = argparser.parse_args()
+        process_file(fasta_dict, args.genome.name)
+    else:
+        # here we need the optional argument reads
+        if args.reads is None:
+            argparser.print_help()
+            sys.exit(1)
+        print(f"Search {args.genome} for {args.reads}")
+        
+        prepro_file = args.genome.name.split('.')[0]+'_prepro.txt'
+        fm_search(prepro_file, args.reads)
 
-    # if args.p:
-    #     print(args.genome.name)
-    #     print(f"Preprocess {args.genome}")
-    #     fasta_dict = fasta_func(args.genome)
-    #     # for k, v in fasta_dict.items():
-    #     #     save_as_file(v, k)
-    #     process_file(fasta_dict, args.genome.name)
-    # else:
-    #     # here we need the optional argument reads
-    #     if args.reads is None:
-    #         argparser.print_help()
-    #         sys.exit(1)
-    #     print(f"Search {args.genome} for {args.reads}")
-
-    print(count_to_bucket('1$4i1m2p4s'))
 
 
 if __name__ == '__main__':
