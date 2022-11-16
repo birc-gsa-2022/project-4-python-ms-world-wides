@@ -29,23 +29,11 @@ def count_to_bucket(count: str) -> dict:
             C[c] = i
 
     return C
-    
-def bwt_C_O(x: str) -> tuple():
-    
-    x += '$'
-    sa = suffixArray(x)
-    col = len(x)-1 # column at the back
-
-    bwt = ''.join([x[(i + col)%len(x)] for i in sa])
-    count = ''.join([x[i] for i in sa])
-    C = count_to_bucket(count) # dict with cumulative counts
-    O = calc_O(bwt, C) # dict (table) with offsets
-    return sa, C , O
 
 def calc_O(bwt: str, C: dict) -> dict:
     '''
     >>>calc_O('aaba$')
-    O = { '$' : [0, 0, 0, 1, 1, 1], 'a' : [0, 1, 1, 1, 2, 3], 'b' : [0, 0, 1, 1, 1, 1]}
+    O = { '$' : [0, 0, 0, 0, 0, 1], 'a' : [0, 1, 2, 2, 3, 3], 'b' : [0, 0, 0, 1, 1, 1]}
     '''
     O = C.copy()
     for k in O.keys():
@@ -58,11 +46,36 @@ def calc_O(bwt: str, C: dict) -> dict:
             else:
                 O[k].append(O[k][-1])
     
-    return O        
+    return O  
+
+    
+def bwt_C_O(x: str) -> tuple():
+    """Calculates SA, C and O.
+
+    Args:
+        x (str): input string we want to find pattern in.
+
+    Returns:
+        SA, C and O
+    """    
+    
+    x += '$'
+    sa = suffixArray(x) 
+    last_idx = len(x)-1 # last_idx
+    bwt = ''.join([x[(i + last_idx)%len(x)] for i in sa]) # Calculates bwt(x)
+    count = ''.join([x[i] for i in sa]) # Sort x
+    C = count_to_bucket(count) # dict with cumulative counts
+    O = calc_O(bwt, C) # dict (table) with offsets
+    return sa, C , O
+
+
 
 def fasta_func(fastafile: str) -> dict:
-    '''Function that can take file or list of strings and return dictionary
-    with fasta sequence coupled with its sequence name'''
+    """Function that can take file or list of strings
+
+    Returns:
+        dict: return dictionary with fasta sequence coupled with its sequence name
+    """    
 
     sequence = []
     name = ''
@@ -102,8 +115,9 @@ def fastq_func(fastqfile: str) -> dict:
     return fastq_dict
     
 def process_file(fasta_dict: dict, filename: str):
-    '''Create a file containing the name of each string 
-    with their suffix array, their bucket dict and their O table'''
+    """Create a file containing the name of each string 
+    with their suffix array, their bucket dict and their O table
+    """    
     filename = filename.split('.')[0]
     file = filename + '_prepro.txt'
 
