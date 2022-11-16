@@ -32,3 +32,8 @@ Once you have implemented the `fm` program (and tested it to the best of your ab
 ## Running time
 
 *List experiments and results that show that both the preprocessing algorithm and the search algorithm works in the expected running time. Add figures by embedding them here, as you learned how to do in project 1.*
+
+Random:
+![](figs/random.png)
+Single:
+![](figs/single.png)

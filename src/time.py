@@ -84,8 +84,8 @@ def time_data(length, bases):
 bases = ['a','t','g','c']
 worst_case = ['a']
 
-n, t1, t2, t3 = time_data(500, bases)
-n1, t11, t21, t31 = time_data(500, worst_case)
+n, t1, t2, t3 = time_data(1000, bases)
+n1, t11, t21, t31 = time_data(1000, worst_case)
 
 def plot_fig(n, t1, t2, t3, name, number):
     plt.figure(number)
@@ -109,5 +109,5 @@ def plot_fig(n, t1, t2, t3, name, number):
     # Save figure in folder figs
     plt.savefig('/home/mathilde/Documents/Kandidat/GSA/Project/Project4_group/project-4-python-ms-world-wides/figs/{}.png'.format(name))
 
-plot_fig(n,t1,t2,t3,'sa',1)
-plot_fig(n1,t11,t21,t31,'sa1',2)
+plot_fig(n,t1,t2,t3,'random',1)
+plot_fig(n1,t11,t21,t31,'single',2)
