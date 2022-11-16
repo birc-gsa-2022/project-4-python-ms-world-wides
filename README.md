@@ -19,21 +19,32 @@ Once you have implemented the `fm` program (and tested it to the best of your ab
 
 ## Preprocessing
 
-*What preprocessing data do you store in files, and how?*
+We decided to make a new file with the same name as the previous file as a prefix, ending with '_prepro.txt' instead of '.fa' to connect the two. This preprocessing file contains a fasta-style header, followed by a line initiated with '#' containing the suffix array sa(x), a line with the dictionary for C after a '+' and finally a line initiated by '@' followed by a dictionary containing the table O.
+
+This format with initiating symbols for each line type makes sure the correct information is retrieved later. The preprocessing file thus condenses the information from an entire fasta entry to an identifying header and 3 additional lines.
 
 ## Insights you may have had while implementing the algorithm
+Python's built in function sorted is surprisingly fast and much easier to implement than to make an entire search function. We therefore used this to build the suffix array.
+
+Another insight was that we don't store x or bwt, even in condensed form. Computing but never saving bwt was a revelation while implementing the algorithm, since bwt felt too essential. We then realized that all of its information is stored in C and O instead, which are used when matching in x or reconstructing x.
 
 ## Problems encountered if any
 
 ## Validation
-
+!!!!!!!!!!!!NOA!!!!!!!!!!!!!!!!!!!!
 *How did you validate that the preprocessing and the search algorithm works?*
 
 ## Running time
+The preprocessing algorithm includes creating the suffix array for which we use Python's sorted() function for simplycity, which runs in O(n log n). 
+Afterwards we calculate the BWT string in O(n), because it retrieves the last character of each rotated suffix in our suffix array. The BWT is used to construct the C and O table. For the C table we first generate a sorted string "count" by using the SA in linear time O(n) which is a string with grouped starting letters of the suffixes in x; essentially the buckets. Afterwards we create a dict with the letters (buckets) as keys and insert the starting index of each bucket in O(n).
+Having bwt and C we finally construct the O table. Therefore we copy the C dict and set the values for all the keys to zero (in O($\sigma$)). We then fill up the table by running through bwt and for each letter we append to the cumulative count list for every key in our dict -> O(n*$\sigma$).
+The fm-search runs in O(m), because we loop trough the pattern string of size m -> O(m) and for every letter we get "Rank" and "Select" by indexing into O and C -> O(1).
 
-*List experiments and results that show that both the preprocessing algorithm and the search algorithm works in the expected running time. Add figures by embedding them here, as you learned how to do in project 1.*
+The following figures show that all of the algorithms look like they would run in linear time for x = a^n and a random sequence. This would be is suprising for the cration of the SA, but also it is very diffiult to distinguisch between O(n) and O(n log(n)) by looking at the graphs. The preprocessing in total (orange) takes longer because it also includes the creation of bwt and the tables. 
+Finally the fm search uses the preprocessed tables and array (that it needs to load) and then represents the search time through the pattern. 
 
 Random:
 ![](figs/random.png)
-Single:
+
+Single-symbol string:
 ![](figs/single.png)

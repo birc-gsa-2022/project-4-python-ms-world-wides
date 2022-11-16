@@ -1,6 +1,5 @@
 import argparse
 import sys
-import re
 import ast
 
 def suffixArray(x: str) -> list:
@@ -158,20 +157,20 @@ def fm_search(prepro_file: str, reads: str) -> str:
     for readname, read in fastq_dict.items():
         
         if len(sa_list) == len(C_list) == len(O_list):
-            # For each fasta sequence
+            # For each fasta sequence (could include multiple seq)
             for i in range(len(sa_list)):
                 genomename = fastanames[i]
 
                 sa, O, C = sa_list[i], O_list[i], C_list[i]
                 L, R = 0, len(sa)
                 
-                for char in reversed(read):
+                for char in reversed(read): # O(m)
                     if L == R or char not in C:
                         L = R # for char not in C
                         break
                     else:
-                        L = C[char] + O[char][L]
-                        R = C[char] + O[char][R]
+                        L = C[char] + O[char][L] # O(1)
+                        R = C[char] + O[char][R] # O(1)
                 
                 for a in range(L,R):
                     match = sa[a]+1
