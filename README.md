@@ -43,9 +43,9 @@ The fm-search runs in O(m), because we loop trough the pattern string of size m 
 The following figures show that all of the algorithms look like they would run in linear time for x = a^n and a random sequence. This would be is suprising for the cration of the SA, but also it is very diffiult to distinguisch between O(n) and O(n log(n)) by looking at the graphs. The preprocessing in total (orange) takes longer because it also includes the creation of bwt and the tables. 
 Finally the fm search uses the preprocessed tables and array (that it needs to load) and then represents the search time through the pattern. 
 
-Random:
-![H](figs/random.png)
+## Random:
+![](figs/random.png)
 
 
-Single-symbol string:
-![H](figs/single.png)
+## Single-symbol string:
+![](figs/single.png)
