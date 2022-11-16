@@ -44,7 +44,8 @@ The following figures show that all of the algorithms look like they would run i
 Finally the fm search uses the preprocessed tables and array (that it needs to load) and then represents the search time through the pattern. 
 
 Random:
-![](figs/random.png)
+![H](figs/random.png)
+
 
 Single-symbol string:
-![](figs/single.png)
+![H](figs/single.png)
