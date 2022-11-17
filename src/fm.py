@@ -209,13 +209,12 @@ def main():
         if args.reads is None:
             argparser.print_help()
             sys.exit(1)
-        print(f"Search {args.genome} for {args.reads}")
-        
         prepro_file = args.genome.name.split('.')[0]+'_prepro.txt'
         
         fastq_dict = fastq_func(args.reads)
-        fm_search(prepro_file, fastq_dict)
-
+        print(fm_search(prepro_file, fastq_dict))
+        
+        
 
 
 if __name__ == '__main__':
