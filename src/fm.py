@@ -18,7 +18,7 @@ def suffixArray(x: str) -> list:
 def count_to_bucket(count: str) -> dict:
     '''
     >>> count_to_bucket("$iiiimppss")
-    bucket = {'$' : 0, 'i' : 1, 'm' : 5, 'p' : 6, 's' : 8}
+    {'$' : 0, 'i' : 1, 'm' : 5, 'p' : 6, 's' : 8}
     '''
     C = {}
     for i,c in enumerate(count):
@@ -32,7 +32,7 @@ def count_to_bucket(count: str) -> dict:
 def calc_O(bwt: str, C: dict) -> dict:
     '''
     >>> calc_O('aaba$', { '$' : 0, 'a' : 1, 'b' : 4})
-    O = { '$' : [0, 0, 0, 0, 0, 1], 'a' : [0, 1, 2, 2, 3, 3], 'b' : [0, 0, 0, 1, 1, 1]}
+    { '$' : [0, 0, 0, 0, 0, 1], 'a' : [0, 1, 2, 2, 3, 3], 'b' : [0, 0, 0, 1, 1, 1]}
     '''
     O = C.copy()
     for k in O.keys():
