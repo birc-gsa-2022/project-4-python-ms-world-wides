@@ -32,7 +32,7 @@ def count_to_bucket(count: str) -> dict:
 def calc_O(bwt: str, C: dict) -> dict:
     '''
     >>> calc_O('aaba$', { '$' : 0, 'a' : 1, 'b' : 4})
-    { '$' : [0, 0, 0, 0, 0, 1], 'a' : [0, 1, 2, 2, 3, 3], 'b' : [0, 0, 0, 1, 1, 1]}
+    {'$' : [0, 0, 0, 0, 0, 1], 'a' : [0, 1, 2, 2, 3, 3], 'b' : [0, 0, 0, 1, 1, 1]}
     '''
     O = C.copy()
     for k in O.keys():
