@@ -31,8 +31,7 @@ Another insight was that we don't store x or bwt, even in condensed form. Comput
 ## Problems encountered if any
 
 ## Validation
-!!!!!!!!!!!!NOA!!!!!!!!!!!!!!!!!!!!
-*How did you validate that the preprocessing and the search algorithm works?*
+To check the correctness of the algorithm we compared the output of our match-algorithm with the output of the linear exact matching algorithm from project one. We used empty strings, uniform ones, random ones and part of existing DNA sequences to test our functions.
 
 ## Running time
 The preprocessing algorithm includes creating the suffix array for which we use Python's sorted() function for simplycity, which runs in O(n log n). 

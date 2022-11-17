@@ -31,7 +31,7 @@ def count_to_bucket(count: str) -> dict:
 
 def calc_O(bwt: str, C: dict) -> dict:
     '''
-    >>>calc_O('aaba$')
+    >>> calc_O('aaba$')
     O = { '$' : [0, 0, 0, 0, 0, 1], 'a' : [0, 1, 2, 2, 3, 3], 'b' : [0, 0, 0, 1, 1, 1]}
     '''
     O = C.copy()
@@ -130,7 +130,7 @@ def process_file(fasta_dict: dict, filename: str):
             final += '@' + str(O) + '\n'
         f.writelines(final)
 
-def fm_search(prepro_file: str, reads: str) -> str:
+def fm_search(prepro_file: str, fastq_dict: dict) -> str:
 
     # give room for muliple fasta sequences
     fastanames, sa_list, C_list, O_list = [], [], [], []
@@ -151,7 +151,6 @@ def fm_search(prepro_file: str, reads: str) -> str:
                 d = ast.literal_eval(line[1:].strip())
                 O_list.append(d) # convert back to dict
     
-    fastq_dict = fastq_func(reads)
 
     res = []
     for readname, read in fastq_dict.items():
@@ -213,7 +212,9 @@ def main():
         print(f"Search {args.genome} for {args.reads}")
         
         prepro_file = args.genome.name.split('.')[0]+'_prepro.txt'
-        fm_search(prepro_file, args.reads)
+        
+        fastq_dict = fastq_func(args.reads)
+        fm_search(prepro_file, fastq_dict)
 
 
 
